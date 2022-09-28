@@ -31,6 +31,7 @@
     }],
     "arrow-body-style": "off",
     "prefer-arrow-callback": "off",
+    "react/no-unknown-property": ["error", { "ignore": ["css"] }],
     "import/order": [
       "error",
       {
