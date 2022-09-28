@@ -1,0 +1,74 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "plugins": [
+    "@typescript-eslint",
+    "react-hooks",
+    "prettier",
+    "import"
+  ],
+  "extends": [
+    "plugin:react/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:import/typescript"
+  ],
+  "rules": {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "@typescript-eslint/no-explicit-any": "off",
+    "react/prop-types": "off",
+    "prettier/prettier": ["error",{
+      "trailingComma": "es5",
+      "singleQuote": true,
+      "printWidth": 100,
+      "semi": false
+    }],
+    "arrow-body-style": "off",
+    "prefer-arrow-callback": "off",
+    "react/no-unknown-property": ["error", { "ignore": ["css"] }],
+    "import/order": [
+      "error",
+      {
+        "groups": ["builtin", "external", "internal"],
+        "pathGroups": [{
+            "pattern": "react",
+            "group": "external",
+            "position": "before"
+        },
+        {
+          "pattern": "src/**",
+          "group": "external",
+          "position": "after"
+        }],
+        "pathGroupsExcludedImportTypes": ["react"],
+        "newlines-between": "never",
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        }
+      }
+    ]
+  },
+  "settings": {
+    "react": {
+      "pragma": "React",
+      "version": "detect"
+    },
+    "import/resolver": {
+      "node": {
+        "extensions": [".ts", ".tsx"],
+        "moduleDirectory": [
+          "node_modules",
+          "./",
+          "src"
+        ]
+      }
+    }
+  }
+}

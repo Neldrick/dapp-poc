@@ -1,0 +1,23 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "firefox",
+      "request": "launch",
+      "name": "Launch My Firefox",
+      "url": "http://localhost:4200",
+      "webRoot": "${workspaceFolder}/ui/src",
+      "timeout": 90000,
+      "tmpDir": "/home/neldrick/firefox",
+      "pathMappings": [
+        {
+          "url": "webpack://dapp/src",
+          "path": "${workspaceFolder}/ui/src"
+        },
+      ]
+    }
+  ]
+}

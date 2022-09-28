@@ -94,4 +94,15 @@ describe("Token contract", function () {
       );
     });
   });
+  describe("issueToSeller", function () {
+    it("Should issue to seller", async function () {
+      const { hardhatToken, owner, addr1, addr2 } = await loadFixture(
+        deployTokenFixture
+      );
+      await expect(
+        hardhatToken.issueToSeller([{ seller: addr1.address, riceType: 1, balance: 50, startDate: 0, endDate:10000}])
+      ).to.changeTokenBalances(hardhatToken, [owner, addr1], [-50, 50]);
+
+    })
+  })
 });
