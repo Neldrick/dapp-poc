@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo, useState } from 'react'
+import React, { useCallback, useContext, useState } from 'react'
 import { Button, TextField } from '@mui/material'
 import { useWeb3React } from '@web3-react/core'
 import { Column, Table } from 'react-virtualized'

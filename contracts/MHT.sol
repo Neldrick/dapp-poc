@@ -59,6 +59,8 @@ contract MHT {
   }
   // A mapping is a key/value map. Here we store each account's balance.
   mapping(address => uint256) balances;
+  // unharvest balance for seller to claim 
+  mapping(address => TypeBalance[]) unharvestBalance;
   // seller balance  - add-> seller, string -> type , int -> amount
   mapping(address => TypeBalance[]) sellerTypeBalance;
   // seller sold list
@@ -107,8 +109,10 @@ contract MHT {
 
         emit Transfer(seller, buyer, numTokens);
   }
-
-  function issueToSeller(AddressTypeBalance []  memory assignedTypeBalance ) external {
+  function getUnharvestBalance(address seller)external view returns (TypeBalance [] memory){
+    return unharvestBalance[seller];
+  }
+  function setUnHarvestBalance(AddressTypeBalance []  memory assignedTypeBalance ) external {
 
         require(msg.sender == owner);
         uint totalRequest = sumTypeBalance(assignedTypeBalance);
@@ -116,36 +120,82 @@ contract MHT {
 
         for(uint i = 0 ; i < assignedTypeBalance.length; i++){
           address currentSeller = assignedTypeBalance[i].seller;
+          TypeBalance memory newTypeBalance = TypeBalance({riceType: assignedTypeBalance[i].riceType, balance: assignedTypeBalance[i].balance, startDate: assignedTypeBalance[i].startDate, endDate: assignedTypeBalance[i].endDate});
+          unharvestBalance[currentSeller].push(newTypeBalance);
           // check sellerTypeBalance exists
-          if(sellerTypeBalance[currentSeller].length > 0){
+          // if(sellerTypeBalance[currentSeller].length > 0){
+          //   // find type exists 
+          //   bool typeExists = false;
+          //   for(uint itemCount; itemCount < sellerTypeBalance[currentSeller].length; itemCount ++){
+          //     if(sellerTypeBalance[currentSeller][itemCount].riceType == assignedTypeBalance[i].riceType
+          //     && sellerTypeBalance[currentSeller][itemCount].startDate == assignedTypeBalance[i].startDate
+          //     && sellerTypeBalance[currentSeller][itemCount].endDate == assignedTypeBalance[i].endDate ){
+          //       sellerTypeBalance[currentSeller][itemCount].balance += assignedTypeBalance[i].balance;
+          //       typeExists = true;
+          //       break;
+          //     }
+          //   }
+          //   if(!typeExists){
+          //     TypeBalance memory newTypeBalance = TypeBalance({riceType: assignedTypeBalance[i].riceType, balance: assignedTypeBalance[i].balance, startDate: assignedTypeBalance[i].startDate, endDate: assignedTypeBalance[i].endDate});
+          //     sellerTypeBalance[currentSeller].push(newTypeBalance);
+          //   }
+            
+          // }else{
+          //   // push to sellerHolding
+          //   TypeBalance memory newTypeBalance = TypeBalance({riceType: assignedTypeBalance[i].riceType, balance: assignedTypeBalance[i].balance, startDate: assignedTypeBalance[i].startDate, endDate: assignedTypeBalance[i].endDate});
+          //   sellerTypeBalance[currentSeller].push(newTypeBalance);
+          // }
+          // balances[msg.sender] -= assignedTypeBalance[i].balance;
+          // balances[currentSeller] += assignedTypeBalance[i].balance;
+          // totalFarmerBalance += assignedTypeBalance[i].balance;
+          // emit Transfer(msg.sender, currentSeller, assignedTypeBalance[i].balance);
+        }
+  }
+  function claimHarvest(address seller, TypeBalance memory unharvestItem) external {
+          require(msg.sender == seller);
+          uint itemIndex;
+          bool indexFound = false;
+          for(uint i; i< unharvestBalance[seller].length; i++){
+            if(unharvestBalance[seller][i].riceType == unharvestItem.riceType
+              && unharvestBalance[seller][i].startDate == unharvestItem.startDate
+              && unharvestBalance[seller][i].endDate == unharvestItem.endDate
+              && unharvestBalance[seller][i].balance == unharvestItem.balance ){
+                itemIndex = i;
+                indexFound = true;
+                break;
+              }
+          }
+          require(indexFound, "UnHarvest item not found");
+          delete unharvestBalance[seller][itemIndex];
+          if(sellerTypeBalance[seller].length > 0){
             // find type exists 
             bool typeExists = false;
-            for(uint itemCount; itemCount < sellerTypeBalance[currentSeller].length; itemCount ++){
-              if(sellerTypeBalance[currentSeller][itemCount].riceType == assignedTypeBalance[i].riceType
-              && sellerTypeBalance[currentSeller][itemCount].startDate == assignedTypeBalance[i].startDate
-              && sellerTypeBalance[currentSeller][itemCount].endDate == assignedTypeBalance[i].endDate ){
-                sellerTypeBalance[currentSeller][itemCount].balance += assignedTypeBalance[i].balance;
+            for(uint itemCount; itemCount < sellerTypeBalance[seller].length; itemCount ++){
+              if(sellerTypeBalance[seller][itemCount].riceType == unharvestItem.riceType
+              && sellerTypeBalance[seller][itemCount].startDate == unharvestItem.startDate
+              && sellerTypeBalance[seller][itemCount].endDate == unharvestItem.endDate ){
+                sellerTypeBalance[seller][itemCount].balance += unharvestItem.balance;
                 typeExists = true;
                 break;
               }
             }
             if(!typeExists){
-              TypeBalance memory newTypeBalance = TypeBalance({riceType: assignedTypeBalance[i].riceType, balance: assignedTypeBalance[i].balance, startDate: assignedTypeBalance[i].startDate, endDate: assignedTypeBalance[i].endDate});
-              sellerTypeBalance[currentSeller].push(newTypeBalance);
+              TypeBalance memory newTypeBalance = TypeBalance({riceType: unharvestItem.riceType, balance: unharvestItem.balance, startDate: unharvestItem.startDate, endDate: unharvestItem.endDate});
+              sellerTypeBalance[seller].push(newTypeBalance);
             }
             
           }else{
             // push to sellerHolding
-            TypeBalance memory newTypeBalance = TypeBalance({riceType: assignedTypeBalance[i].riceType, balance: assignedTypeBalance[i].balance, startDate: assignedTypeBalance[i].startDate, endDate: assignedTypeBalance[i].endDate});
-            sellerTypeBalance[currentSeller].push(newTypeBalance);
+            TypeBalance memory newTypeBalance = TypeBalance({riceType: unharvestItem.riceType, balance: unharvestItem.balance, startDate: unharvestItem.startDate, endDate: unharvestItem.endDate});
+            sellerTypeBalance[seller].push(newTypeBalance);
           }
-          balances[msg.sender] -= assignedTypeBalance[i].balance;
-          balances[currentSeller] += assignedTypeBalance[i].balance;
-          totalFarmerBalance += assignedTypeBalance[i].balance;
-          emit Transfer(msg.sender, currentSeller, assignedTypeBalance[i].balance);
-        }
-  }
 
+          balances[msg.sender] -= unharvestItem.balance;
+          balances[seller] += unharvestItem.balance;
+          totalFarmerBalance += unharvestItem.balance;
+          emit Transfer(msg.sender, seller, unharvestItem.balance);
+        
+  }
   function sumTypeBalance (AddressTypeBalance [] memory balanceList)private pure returns (uint retVal){
         uint totalAmnt = 0;
         

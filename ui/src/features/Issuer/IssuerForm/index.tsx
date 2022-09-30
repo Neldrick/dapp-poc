@@ -65,7 +65,7 @@ const IssuerForm = ({
   const onSubmitClick = useCallback(() => {
     if (tradeContract) {
       tradeContract
-        .issueToSeller(
+        .setUnHarvestBalance(
           issueRows.map((x) => {
             return {
               ...x,

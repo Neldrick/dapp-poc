@@ -7,6 +7,7 @@ import { injected } from 'src/core/network/web3/connectors'
 import { Provider } from 'src/core/network/web3/provider'
 import FarmerHolidingList from 'src/features/farmer/FarmerHoldingList'
 import { FarmerHoldingProvider } from 'src/features/farmer/FarmerHoldingList/context'
+import FarmerPriceList from 'src/features/farmer/PriceList'
 import IssuerForm from 'src/features/Issuer/IssuerForm'
 import { AppContext } from '../contexts/appContext'
 import { UserRole } from '../models/enum'
@@ -104,9 +105,14 @@ const GeneralLayout: React.FC = () => {
       {userRole === UserRole.Issuer && <IssuerForm totalValue={totalValue} />}
       {userRole === UserRole.Farmer && (
         <div>
-          <FarmerHoldingProvider>
-            <FarmerHolidingList />
-          </FarmerHoldingProvider>
+          <div>
+            <FarmerHoldingProvider>
+              <FarmerHolidingList />
+            </FarmerHoldingProvider>
+          </div>
+          <div>
+            <FarmerPriceList />
+          </div>
         </div>
       )}
       {userRole === UserRole.Buyer && <div> buyer</div>}
