@@ -65,7 +65,7 @@ const IssuerForm = ({
   const onSubmitClick = useCallback(() => {
     if (tradeContract) {
       tradeContract
-        .issueToSeller(
+        .setUnHarvestBalance(
           issueRows.map((x) => {
             return {
               ...x,
@@ -81,7 +81,7 @@ const IssuerForm = ({
   }, [issueRows, tradeContract])
 
   return (
-    <div>
+    <div css={styling.formContainer}>
       <div css={styling.cmpBox}>
         <AmountCompareBox
           firstLabel="Total"
@@ -95,6 +95,8 @@ const IssuerForm = ({
         />
       </div>
       <div css={styling.form}>
+        <h3>Set UnHarvest Item To Farmer</h3>
+        <hr />
         {issueRows.map((issueRow, index) => (
           <div key={`${addTypeAmountRowPrefix}${index}`} css={styling.row}>
             <AddressTypeAmountInputFields

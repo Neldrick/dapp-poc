@@ -35,7 +35,6 @@ const AddressTypeAmountInputFields = ({
   }
 
   const handleDateChange = (rangesByKey: RangeKeyDict) => {
-    console.log(rangesByKey.range)
     onChange({
       ...value,
       startDate: rangesByKey.range.startDate?.getTime() ?? 0,

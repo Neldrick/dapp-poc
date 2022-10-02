@@ -17,3 +17,15 @@ export const getTimeOfStartOfToday = () => {
   today.setHours(0, 0, 0, 0)
   return today.getTime()
 }
+export function getEnumKeyByEnumValue(myEnum: any, enumValue: number | string): string {
+  const keys = Object.keys(myEnum).filter((x) => myEnum[x] == enumValue)
+  return keys.length > 0 ? keys[0] : ''
+}
+export function setObjectKeyValue<ObjType, KeyType extends keyof ObjType>(
+  obj: ObjType,
+  key: KeyType,
+  value: ObjType[KeyType]
+): ObjType {
+  obj[key] = value
+  return obj
+}

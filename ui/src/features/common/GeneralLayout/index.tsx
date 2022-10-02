@@ -5,12 +5,14 @@ import MHTArtifact from 'src/assests/MHT.json'
 import { contractAddress, issuerAddress } from 'src/core/constants'
 import { injected } from 'src/core/network/web3/connectors'
 import { Provider } from 'src/core/network/web3/provider'
+import FarmerForm from 'src/features/farmer/FarmerForm'
 import IssuerForm from 'src/features/Issuer/IssuerForm'
 import { AppContext } from '../contexts/appContext'
 import { UserRole } from '../models/enum'
 import { getErrorMessage } from './services'
 import { ActivateFunction } from './type'
 
+import 'react-virtualized/styles.css'
 const GeneralLayout: React.FC = () => {
   const context = useWeb3React<Provider>()
   const { active, activate, error, account, library } = context
@@ -98,7 +100,7 @@ const GeneralLayout: React.FC = () => {
     <>
       {userRole === UserRole.Unkown && <div>Please Install Wallet And Allow to Connect Wallet</div>}
       {userRole === UserRole.Issuer && <IssuerForm totalValue={totalValue} />}
-      {userRole === UserRole.Farmer && <div>farmer </div>}
+      {userRole === UserRole.Farmer && <FarmerForm />}
       {userRole === UserRole.Buyer && <div> buyer</div>}
     </>
   )

@@ -12,3 +12,21 @@ export interface IAppContext {
   tradeContract: Contract | null
   setTradeContract: (value: Contract | null) => void
 }
+
+export interface IPriceItem {
+  seller: string
+  size: number
+  amount: number
+  price: number
+  startDate: number
+  endDate: number
+}
+export interface IRequestItem {
+  buyer: string
+  seller: string
+  size: number
+  amount: number
+  price: number
+  startDate: number
+  endDate: number
+}
