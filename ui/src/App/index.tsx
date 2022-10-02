@@ -4,7 +4,7 @@ import { Web3ReactProvider } from '@web3-react/core'
 // import { routerConfig } from 'src/core/route'
 import { getProvider } from 'src/core/network/web3/provider'
 import { AppContextProvider } from 'src/features/common/contexts/appContext'
-import GeneralLayout from 'src/features/common/GeneralLayout'
+import GeneralLayout from 'src/pages/GeneralLayout'
 
 const App: React.FC = () => {
   // const router = useMemo(() => routerConfig, [])

@@ -39,7 +39,6 @@ const FarmerPriceList = () => {
         tradeContract.getPriceListBySellerType(account, RiceType.Red),
         tradeContract.getPriceListBySellerType(account, RiceType.Sushi),
       ]).then((resultArr) => {
-        console.log(resultArr)
         setRiceSetData({
           jasmine: getPriceItemFromChain(resultArr[0]),
           red: getPriceItemFromChain(resultArr[1]),

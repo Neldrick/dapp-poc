@@ -6,8 +6,8 @@ import PopUpDialogs from 'src/components/PopUpDialogs'
 import { Provider } from 'src/core/network/web3/provider'
 import { setObjectKeyValue } from 'src/core/utils'
 import { AppContext } from 'src/features/common/contexts/appContext'
+import { ISellItem } from 'src/features/common/models/interface'
 import { useFarmer } from '../../context'
-import { ISellItem } from './interface'
 
 const CreatePriceForm = () => {
   const { isCreateFormOpen, selectedBalance, reset } = useFarmer()

@@ -7,24 +7,21 @@ import { Column, Table } from 'react-virtualized'
 import { Provider } from 'src/core/network/web3/provider'
 import { getEnumKeyByEnumValue } from 'src/core/utils'
 import { AppContext } from 'src/features/common/contexts/appContext'
-import { getRequestItemFromChain } from 'src/features/common/models/dataGetter'
+import { getPriceItemFromChain } from 'src/features/common/models/dataGetter'
 import { RiceType } from 'src/features/common/models/enum'
-import { IRequestItem } from 'src/features/common/models/interface'
+import { IPriceItem } from 'src/features/common/models/interface'
 import { generalStyles } from '../constants'
-import { useFarmer } from '../context'
-import ApproveRequestForm from './ApproveRequestForm'
-
-const FarmerRequestList = () => {
+import { useBuyer } from '../context'
+import CreateRequestForm from './CreateRequestForm'
+const BuyerPriceList = () => {
   const styling = generalStyles()
-
   const [isJasminExpand, setIsJasminExpand] = useState(true)
   const [isRedExpand, setIsRedExpand] = useState(true)
   const [isSushiExpand, setIsSushiExpand] = useState(true)
-
   const [riceSetData, setRiceSetData] = useState<{
-    jasmine: IRequestItem[]
-    red: IRequestItem[]
-    sushi: IRequestItem[]
+    jasmine: IPriceItem[]
+    red: IPriceItem[]
+    sushi: IPriceItem[]
   }>({
     jasmine: [],
     red: [],
@@ -33,37 +30,32 @@ const FarmerRequestList = () => {
 
   const { account } = useWeb3React<Provider>()
   const { tradeContract } = useContext(AppContext)
-  const {
-    isRequestListExpand,
-    setIsRequestListExpand,
-    setSelectedRequestItem,
-    setIsApproveRequestFormOpen,
-  } = useFarmer()
-  const handleApproveClick = useCallback(
-    (rowData: IRequestItem, riceType: RiceType) => {
-      setSelectedRequestItem({ ...rowData, riceType })
-      setIsApproveRequestFormOpen(true)
-    },
-    [setIsApproveRequestFormOpen, setSelectedRequestItem]
-  )
+  const { setIsPriceListExpand, setSelectedPriceItem, setIsCreateFormOpen, isPriceListExpand } =
+    useBuyer()
   useEffect(() => {
     if (tradeContract) {
       Promise.all([
-        tradeContract.getSellerRequestListByType(account, RiceType.Jasmine),
-        tradeContract.getSellerRequestListByType(account, RiceType.Red),
-        tradeContract.getSellerRequestListByType(account, RiceType.Sushi),
+        tradeContract.getPriceListByType(RiceType.Jasmine),
+        tradeContract.getPriceListByType(RiceType.Red),
+        tradeContract.getPriceListByType(RiceType.Sushi),
       ]).then((resultArr) => {
         setRiceSetData({
-          jasmine: getRequestItemFromChain(resultArr[0]),
-          red: getRequestItemFromChain(resultArr[1]),
-          sushi: getRequestItemFromChain(resultArr[2]),
+          jasmine: getPriceItemFromChain(resultArr[0]),
+          red: getPriceItemFromChain(resultArr[1]),
+          sushi: getPriceItemFromChain(resultArr[2]),
         })
       })
     }
   }, [account, tradeContract])
-
+  const handleActionClick = useCallback(
+    (item: IPriceItem, riceType: RiceType) => {
+      setSelectedPriceItem({ ...item, riceType })
+      setIsCreateFormOpen(true)
+    },
+    [setIsCreateFormOpen, setSelectedPriceItem]
+  )
   const RiceTable = useCallback(
-    (riceType: RiceType, ricePriceData: IRequestItem[], isExpand: boolean, setIsExpand: any) => {
+    (riceType: RiceType, ricePriceData: IPriceItem[], isExpand: boolean, setIsExpand: any) => {
       return (
         <div>
           <div>
@@ -84,8 +76,8 @@ const FarmerRequestList = () => {
               rowStyle={{ borderBottom: '1px solid black' }}
             >
               <Column width={100} label="Size" dataKey="size" />
-              <Column width={120} label="Amount" dataKey="amount" />
-              <Column width={120} label="Price" dataKey="price" />
+              <Column width={100} label="Amount" dataKey="amount" />
+              <Column width={100} label="Price" dataKey="price" />
               <Column
                 width={200}
                 label="Start Date"
@@ -99,12 +91,12 @@ const FarmerRequestList = () => {
                 cellRenderer={({ cellData }) => new Date(cellData).toDateString()}
               />
               <Column
-                width={140}
+                width={120}
                 label=""
-                dataKey="approve"
+                dataKey="action"
                 cellRenderer={({ rowData }) => (
-                  <Button variant="contained" onClick={() => handleApproveClick(rowData, riceType)}>
-                    Approve
+                  <Button variant="contained" onClick={() => handleActionClick(rowData, riceType)}>
+                    Request
                   </Button>
                 )}
               />
@@ -113,27 +105,24 @@ const FarmerRequestList = () => {
         </div>
       )
     },
-    [handleApproveClick, styling.tableCollapse, styling.tableTitle]
+    [handleActionClick, styling.tableCollapse, styling.tableTitle]
   )
   return (
     <div css={styling.container}>
-      <h4 css={styling.tableTitle}> Request List</h4>
-      <Button
-        css={styling.tableCollapse}
-        onClick={() => setIsRequestListExpand(!isRequestListExpand)}
-      >
-        {isRequestListExpand ? 'Collapse' : 'Expand'}
+      <h4 css={styling.tableTitle}> Price List</h4>
+      <Button css={styling.tableCollapse} onClick={() => setIsPriceListExpand(!isPriceListExpand)}>
+        {isPriceListExpand ? 'Collapse' : 'Expand'}
       </Button>
       <hr />
-      {isRequestListExpand && (
+      {isPriceListExpand && (
         <React.Fragment>
           {RiceTable(RiceType.Jasmine, riceSetData.jasmine, isJasminExpand, setIsJasminExpand)}
           {RiceTable(RiceType.Red, riceSetData.red, isRedExpand, setIsRedExpand)}
           {RiceTable(RiceType.Sushi, riceSetData.sushi, isSushiExpand, setIsSushiExpand)}
         </React.Fragment>
       )}
-      <ApproveRequestForm />
+      <CreateRequestForm />
     </div>
   )
 }
-export default FarmerRequestList
+export default BuyerPriceList
