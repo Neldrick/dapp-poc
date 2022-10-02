@@ -10,14 +10,14 @@ import { AppContext } from 'src/features/common/contexts/appContext'
 import { RiceType } from 'src/features/common/models/enum'
 import { generalStyles } from '../constants'
 import { useFarmer } from '../context'
-import { IFramerHolding } from '../interface'
+import { IFarmerHolding } from '../interface'
 import HarvestForm from './HarvestForm'
 
 const UnHarvestList = () => {
   const styling = generalStyles()
   const { tradeContract } = useContext(AppContext)
   const { account } = useWeb3React<Provider>()
-  const [unHarvestList, setUnHarvestList] = useState<IFramerHolding[]>([])
+  const [unHarvestList, setUnHarvestList] = useState<IFarmerHolding[]>([])
   const {
     isUnHaverstListExpand,
     setIsUnHaverstListExpand,
@@ -41,7 +41,7 @@ const UnHarvestList = () => {
     }
   }, [account, tradeContract])
   const handleActionClick = useCallback(
-    (rowData: IFramerHolding) => {
+    (rowData: IFarmerHolding) => {
       setIsClaimFormOpen(true)
       setSelectedBalance(rowData)
     },

@@ -33,8 +33,8 @@ const BootstrapDialogTitle = (props: DialogTitleProps) => {
           onClick={onClose}
           sx={{
             position: 'absolute',
-            right: 8,
-            top: 8,
+            right: 0,
+            top: 0,
             color: (theme) => theme.palette.grey[500],
           }}
         >
@@ -55,7 +55,7 @@ export default function PopUpDialogs({ isOpen, children, onClose }: PopUpDialogs
     <div>
       <BootstrapDialog onClose={onClose} aria-labelledby="customized-dialog-title" open={isOpen}>
         <BootstrapDialogTitle id="customized-dialog-title" onClose={onClose} />
-        <DialogContent dividers>{children}</DialogContent>
+        <DialogContent>{children}</DialogContent>
       </BootstrapDialog>
     </div>
   )

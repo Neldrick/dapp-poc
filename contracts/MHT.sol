@@ -338,28 +338,29 @@ contract MHT {
       requestList[riceType].push(newItemList[i]); 
     }
   }
-  function sendItemToBuyer(uint8 riceType, BuyItem[] memory newItemList)external {
+  function sendItemToBuyer(uint8 riceType, BuyItem memory newItemList)external {
     // check have enough amount 
     // find the item 
     TypeBalance memory balance;
-    for(uint i = 0; i < sellerTypeBalance[newItemList[0].seller].length; i++){
-      if(sellerTypeBalance[newItemList[0].seller][i].riceType == riceType
-      && sellerTypeBalance[newItemList[0].seller][i].startDate == newItemList[0].startDate
-      && sellerTypeBalance[newItemList[0].seller][i].endDate == newItemList[0].endDate
+    for(uint i = 0; i < sellerTypeBalance[newItemList.seller].length; i++){
+      if(sellerTypeBalance[newItemList.seller][i].riceType == riceType
+      && sellerTypeBalance[newItemList.seller][i].startDate == newItemList.startDate
+      && sellerTypeBalance[newItemList.seller][i].endDate == newItemList.endDate
       ){
-        balance = sellerTypeBalance[newItemList[0].seller][i];
+        balance = sellerTypeBalance[newItemList.seller][i];
         break;
       }
     } 
     // find price Item 
+    // TODO: incorrect search , change to single item or put it in loop
     SellItem memory priceItem;
     uint priceItemIndex;
     for(uint i = 0 ; i < priceList[riceType].length ; i++){
-      if(priceList[riceType][i].seller == newItemList[0].seller
-      && priceList[riceType][i].startDate == newItemList[0].startDate
-      && priceList[riceType][i].endDate == newItemList[0].endDate
-      && priceList[riceType][i].price == newItemList[0].price
-      && priceList[riceType][i].size == newItemList[0].size
+      if(priceList[riceType][i].seller == newItemList.seller
+      && priceList[riceType][i].startDate == newItemList.startDate
+      && priceList[riceType][i].endDate == newItemList.endDate
+      && priceList[riceType][i].price == newItemList.price
+      && priceList[riceType][i].size == newItemList.size
       ){
         priceItem = priceList[riceType][i];
         priceItemIndex = i;
@@ -367,41 +368,77 @@ contract MHT {
       }
     }
     // check total amount of buy item > priceItem or not
-    uint totalBuyAmount;
-    for(uint i = 0 ; i < newItemList.length; i++){
-      totalBuyAmount += (newItemList[i].amount * newItemList[i].size);
-    }
+    uint totalBuyAmount = newItemList.amount * newItemList.size;
+    
     require(totalBuyAmount <= (priceItem.amount * priceItem.size), "Sell Item not enough");
     require(totalBuyAmount <= balance.balance, "Balance not enough");
     
-    for(uint i = 0; i < newItemList.length; i ++){
-      // reduce amount from price and balance
-      priceItem.amount -= newItemList[i].amount;
-      balance.balance -= (newItemList[i].amount * newItemList[i].size);
-      // add item to buyer
-      Item memory newItem = Item({
-        seller: newItemList[i].seller, amount: newItemList[i].amount,
-        riceType: riceType, price: newItemList[i].price,
-        startDate: newItemList[i].startDate, endDate: newItemList[i].endDate
-      });
-      buyerTypeBalance[newItemList[i].buyer].push(newItem);
-      // add sold list
-      SoldItem memory soldItem = SoldItem({
-        buyer: newItemList[i].buyer, amount: newItemList[i].amount,
-        riceType: riceType, price: newItemList[i].price,
-        startDate: newItemList[i].startDate, endDate: newItemList[i].endDate,
-        soldTime: block.timestamp
-      });
-      sellerSoldBalance[newItemList[i].seller].push(soldItem);
-      
-      // transfer coin
-      emit Transfer(msg.sender, newItemList[i].buyer, (newItemList[i].amount * newItemList[i].size));
+    
+    // reduce amount from price and balance
+    priceItem.amount -= newItemList.amount;
+    balance.balance -= totalBuyAmount;
+    // add item to buyer
+    Item memory newItem = Item({
+      seller: newItemList.seller, amount: newItemList.amount,
+      riceType: riceType, price: newItemList.price,
+      startDate: newItemList.startDate, endDate: newItemList.endDate
+    });
+    buyerTypeBalance[newItemList.buyer].push(newItem);
+    // add sold list
+    SoldItem memory soldItem = SoldItem({
+      buyer: newItemList.buyer, amount: totalBuyAmount,
+      riceType: riceType, price: newItemList.price,
+      startDate: newItemList.startDate, endDate: newItemList.endDate,
+      soldTime: block.timestamp
+    });
+    sellerSoldBalance[newItemList.seller].push(soldItem);
+    // remove item from request list
+    uint requestIndex;
+    for(uint m; m < requestList[riceType].length; m ++){
+      if(requestList[riceType][m].buyer == newItemList.buyer
+      && requestList[riceType][m].seller == newItemList.seller
+      && requestList[riceType][m].size == newItemList.size
+      && requestList[riceType][m].amount == newItemList.amount
+      && requestList[riceType][m].price == newItemList.price
+      && requestList[riceType][m].startDate == newItemList.startDate
+      && requestList[riceType][m].endDate == newItemList.endDate
+      ){
+        requestIndex = m;
+        break;
+      }
     }
+    requestList[riceType][requestIndex] = requestList[riceType][requestList[riceType].length - 1];
+    requestList[riceType].pop();
     if(priceItem.amount == 0){
-      priceList[riceType][priceItemIndex] = priceList[riceType][priceList[riceType].length];
+      priceList[riceType][priceItemIndex] = priceList[riceType][priceList[riceType].length -1];
       priceList[riceType].pop();
+      // TODO: remove all item  from request list
     }else{
       priceList[riceType][priceItemIndex] = priceItem;
     }
+    // update balance in hold list
+    uint holdingIndex;
+    for( uint k=0; k < sellerTypeBalance[newItemList.seller].length; k++){
+      if(sellerTypeBalance[newItemList.seller][k].riceType == riceType
+      && sellerTypeBalance[newItemList.seller][k].startDate == newItemList.startDate
+      && sellerTypeBalance[newItemList.seller][k].endDate == newItemList.endDate){
+        sellerTypeBalance[newItemList.seller][k].balance -= totalBuyAmount;
+        holdingIndex= k;
+        break;
+      }
+    }
+    if(sellerTypeBalance[newItemList.seller][holdingIndex].balance == 0){
+      sellerTypeBalance[newItemList.seller][holdingIndex] = sellerTypeBalance[newItemList.seller][sellerTypeBalance[newItemList.seller].length - 1];
+      sellerTypeBalance[newItemList.seller].pop();
+    }
+    // transfer coin
+    
+    balances[newItemList.seller] -= totalBuyAmount;
+    balances[newItemList.buyer] += totalBuyAmount;
+    totalFarmerBalance -= totalBuyAmount;
+    totalBuyerBalance += totalBuyAmount;
+    emit Transfer(newItemList.seller, newItemList.buyer, totalBuyAmount);
+    
+    
   }
 }

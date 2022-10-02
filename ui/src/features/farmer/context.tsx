@@ -6,8 +6,7 @@ import React, {
   useMemo,
   useReducer,
 } from 'react'
-import { IRequestItem } from '../common/models/interface'
-import { FarmerContextValue, FarmerState, IFramerHolding } from './interface'
+import { FarmerContextValue, FarmerState, IFarmerHolding, IRequestItemWithType } from './interface'
 
 export const FarmerContext = createContext<FarmerContextValue | null>(null)
 
@@ -19,6 +18,7 @@ const farmerReducer = (state: FarmerState, payload: Partial<FarmerState>) => ({
 const initialState = {
   isUnHaverstListExpand: true,
   isHoldingExpand: true,
+  isSoldExpand: true,
   isPriceListExpand: true,
   isRequestListExpand: true,
 
@@ -58,6 +58,14 @@ export const useFarmer = () => {
     },
     [dispatch]
   )
+  const setIsSoldExpand = useCallback(
+    (isSoldExpand: boolean) => {
+      dispatch({
+        isSoldExpand,
+      })
+    },
+    [dispatch]
+  )
   const setIsPriceListExpand = useCallback(
     (isPriceListExpand: boolean) => {
       dispatch({
@@ -89,7 +97,7 @@ export const useFarmer = () => {
     [dispatch]
   )
   const setSelectedBalance = useCallback(
-    (selectedBalance: IFramerHolding) => {
+    (selectedBalance: IFarmerHolding) => {
       dispatch({
         selectedBalance,
       })
@@ -97,7 +105,7 @@ export const useFarmer = () => {
     [dispatch]
   )
   const setSelectedRequestItem = useCallback(
-    (selectedRequestItem: IRequestItem) => {
+    (selectedRequestItem: IRequestItemWithType) => {
       dispatch({
         selectedRequestItem,
       })
@@ -110,12 +118,23 @@ export const useFarmer = () => {
     },
     [dispatch]
   )
-  const reset = useCallback(() => dispatch(initialState), [dispatch])
+  const reset = useCallback(
+    () =>
+      dispatch({
+        isCreateFormOpen: false,
+        isHarvestFormOpen: false,
+        isApproveRequestFormOpen: false,
+        selectedRequestItem: null,
+        selectedBalance: null,
+      }),
+    [dispatch]
+  )
 
   return {
     ...state,
     setIsUnHaverstListExpand,
     setIsHoldingExpand,
+    setIsSoldExpand,
     setIsPriceListExpand,
     setIsRequestListExpand,
     setIsCreateFormOpen,

@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import React, { useCallback, useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { jsx } from '@emotion/react'
 import { Button } from '@mui/material'
 import { useWeb3React } from '@web3-react/core'
@@ -9,36 +9,26 @@ import { getEnumKeyByEnumValue } from 'src/core/utils'
 import { AppContext } from 'src/features/common/contexts/appContext'
 import { RiceType } from 'src/features/common/models/enum'
 import { generalStyles } from '../constants'
-import { useFarmer } from '../context'
-import { IFarmerHolding } from '../interface'
-import CreatePriceForm from './CreatePriceForm'
-import { getHoldingItemList } from './dataFormatter'
+import { useBuyer } from '../context'
+import { getBuyerHoldingFromChain } from './dataGetter'
+import { IBuyerHoldingItem } from './interface'
 
-const FarmerHolidingList = () => {
-  // 1. get data from block chain
+const BuyerHoldingList = () => {
   const styling = generalStyles()
   const { tradeContract } = useContext(AppContext)
   const { account } = useWeb3React<Provider>()
-  const [holdingList, setHoldingList] = useState<IFarmerHolding[]>([])
-  const { isHoldingExpand, setIsHoldingExpand, setSelectedBalance, setIsCreateFormOpen } =
-    useFarmer()
+  const [holdingList, setHoldingList] = useState<IBuyerHoldingItem[]>([])
+  const { isHoldingExpand, setIsHoldingExpand } = useBuyer()
   useEffect(() => {
     if (tradeContract) {
-      tradeContract.getSellerTypeBalance(account).then((result: any[]) => {
-        setHoldingList(getHoldingItemList(result))
+      tradeContract.getBuyerBalance(account).then((resultArr: any[]) => {
+        setHoldingList(getBuyerHoldingFromChain(resultArr))
       })
     }
   }, [account, tradeContract])
-  const handleActionClick = useCallback(
-    (rowData: IFarmerHolding) => {
-      setSelectedBalance(rowData)
-      setIsCreateFormOpen(true)
-    },
-    [setIsCreateFormOpen, setSelectedBalance]
-  )
   return (
     <div css={styling.container}>
-      <h4 css={styling.tableTitle}> Holding</h4>
+      <h4 css={styling.tableTitle}> Holding List</h4>
       <Button css={styling.tableCollapse} onClick={() => setIsHoldingExpand(!isHoldingExpand)}>
         {isHoldingExpand ? 'Collapse' : 'Expand'}
       </Button>
@@ -55,38 +45,29 @@ const FarmerHolidingList = () => {
           rowStyle={{ borderBottom: '1px solid black' }}
         >
           <Column
-            width={100}
+            width={80}
             label="Type"
             dataKey="riceType"
             cellRenderer={({ cellData }) => getEnumKeyByEnumValue(RiceType, cellData)}
           />
-          <Column width={150} label="Balance" dataKey="balance" />
+          <Column width={120} label="Seller" dataKey="seller" />
+          <Column width={80} label="Amount" dataKey="amount" />
+          <Column width={80} label="Price" dataKey="price" />
           <Column
-            width={200}
+            width={180}
             label="Start Date"
             dataKey="startDate"
             cellRenderer={({ cellData }) => new Date(cellData).toDateString()}
           />
           <Column
-            width={200}
+            width={180}
             label="End Date"
             dataKey="endDate"
             cellRenderer={({ cellData }) => new Date(cellData).toDateString()}
           />
-          <Column
-            width={150}
-            label=""
-            dataKey="action"
-            cellRenderer={({ rowData }) => (
-              <Button variant="contained" onClick={() => handleActionClick(rowData)}>
-                Create Price
-              </Button>
-            )}
-          />
         </Table>
       )}
-      <CreatePriceForm />
     </div>
   )
 }
-export default FarmerHolidingList
+export default BuyerHoldingList
