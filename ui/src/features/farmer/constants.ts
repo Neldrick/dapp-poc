@@ -1,8 +1,11 @@
-export const contentStyles = () => {
+export const generalStyles = () => {
   return {
+    farmerFormContainer: {
+      minWidth: '800px',
+    },
     container: {
       borderRadius: '5px',
-      minHeight: '200px',
+      minHeight: '90px',
       margin: '8px',
       marginTop: '20px',
       border: '1px solid black',

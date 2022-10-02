@@ -1,5 +1,8 @@
 export const contentStyles = () => {
   return {
+    formContainer: {
+      padding: '8px',
+    },
     form: {
       borderRadius: '5px',
       minHeight: '200px',

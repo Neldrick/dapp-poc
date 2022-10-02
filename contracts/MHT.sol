@@ -151,49 +151,51 @@ contract MHT {
           // emit Transfer(msg.sender, currentSeller, assignedTypeBalance[i].balance);
         }
   }
-  function claimHarvest(address seller, TypeBalance memory unharvestItem) external {
-          require(msg.sender == seller);
-          uint itemIndex;
-          bool indexFound = false;
-          for(uint i; i< unharvestBalance[seller].length; i++){
-            if(unharvestBalance[seller][i].riceType == unharvestItem.riceType
-              && unharvestBalance[seller][i].startDate == unharvestItem.startDate
-              && unharvestBalance[seller][i].endDate == unharvestItem.endDate
-              && unharvestBalance[seller][i].balance == unharvestItem.balance ){
-                itemIndex = i;
-                indexFound = true;
-                break;
-              }
-          }
-          require(indexFound, "UnHarvest item not found");
-          delete unharvestBalance[seller][itemIndex];
-          if(sellerTypeBalance[seller].length > 0){
-            // find type exists 
-            bool typeExists = false;
-            for(uint itemCount; itemCount < sellerTypeBalance[seller].length; itemCount ++){
-              if(sellerTypeBalance[seller][itemCount].riceType == unharvestItem.riceType
-              && sellerTypeBalance[seller][itemCount].startDate == unharvestItem.startDate
-              && sellerTypeBalance[seller][itemCount].endDate == unharvestItem.endDate ){
-                sellerTypeBalance[seller][itemCount].balance += unharvestItem.balance;
-                typeExists = true;
-                break;
-              }
-            }
-            if(!typeExists){
-              TypeBalance memory newTypeBalance = TypeBalance({riceType: unharvestItem.riceType, balance: unharvestItem.balance, startDate: unharvestItem.startDate, endDate: unharvestItem.endDate});
-              sellerTypeBalance[seller].push(newTypeBalance);
-            }
-            
-          }else{
-            // push to sellerHolding
-            TypeBalance memory newTypeBalance = TypeBalance({riceType: unharvestItem.riceType, balance: unharvestItem.balance, startDate: unharvestItem.startDate, endDate: unharvestItem.endDate});
-            sellerTypeBalance[seller].push(newTypeBalance);
-          }
+  function harvest(address seller, TypeBalance memory unharvestItem) external {
+    require(msg.sender == seller);
+    uint itemIndex;
+    bool indexFound = false;
+    for(uint i; i< unharvestBalance[seller].length; i++){
+      if(unharvestBalance[seller][i].riceType == unharvestItem.riceType
+        && unharvestBalance[seller][i].startDate == unharvestItem.startDate
+        && unharvestBalance[seller][i].endDate == unharvestItem.endDate
+        && unharvestBalance[seller][i].balance == unharvestItem.balance ){
+          itemIndex = i;
+          indexFound = true;
+          break;
+        }
+    }
+    require(indexFound, "UnHarvest item not found");
+    // to delete -> copy last item to index and delete + length --
+    unharvestBalance[seller][itemIndex] = unharvestBalance[seller][unharvestBalance[seller].length -1];
+    unharvestBalance[seller].pop();
+    if(sellerTypeBalance[seller].length > 0){
+      // find type exists 
+      bool typeExists = false;
+      for(uint itemCount; itemCount < sellerTypeBalance[seller].length; itemCount ++){
+        if(sellerTypeBalance[seller][itemCount].riceType == unharvestItem.riceType
+        && sellerTypeBalance[seller][itemCount].startDate == unharvestItem.startDate
+        && sellerTypeBalance[seller][itemCount].endDate == unharvestItem.endDate ){
+          sellerTypeBalance[seller][itemCount].balance += unharvestItem.balance;
+          typeExists = true;
+          break;
+        }
+      }
+      if(!typeExists){
+        TypeBalance memory newTypeBalance = TypeBalance({riceType: unharvestItem.riceType, balance: unharvestItem.balance, startDate: unharvestItem.startDate, endDate: unharvestItem.endDate});
+        sellerTypeBalance[seller].push(newTypeBalance);
+      }
+      
+    }else{
+      // push to sellerHolding
+      TypeBalance memory newTypeBalance = TypeBalance({riceType: unharvestItem.riceType, balance: unharvestItem.balance, startDate: unharvestItem.startDate, endDate: unharvestItem.endDate});
+      sellerTypeBalance[seller].push(newTypeBalance);
+    }
 
-          balances[msg.sender] -= unharvestItem.balance;
-          balances[seller] += unharvestItem.balance;
-          totalFarmerBalance += unharvestItem.balance;
-          emit Transfer(msg.sender, seller, unharvestItem.balance);
+    balances[owner] -= unharvestItem.balance;
+    balances[seller] += unharvestItem.balance;
+    totalFarmerBalance += unharvestItem.balance;
+    emit Transfer(owner, seller, unharvestItem.balance);
         
   }
   function sumTypeBalance (AddressTypeBalance [] memory balanceList)private pure returns (uint retVal){
@@ -247,6 +249,7 @@ contract MHT {
       for(uint i = 0; i < priceList[riceType].length; i ++){
         if(priceList[riceType][i].seller == seller){
            sellerPriceList[j]=priceList[riceType][i];
+           j++;
         }
       }
       return sellerPriceList;
@@ -254,25 +257,43 @@ contract MHT {
   function getPriceListByType(uint8 riceType) external view returns (SellItem[] memory){
     return priceList[riceType];
   }
-  // for buyer , holder will be buyer , for seller holder will ber seller, they only view related things
-  function getRequestListByHolderType(address holder, uint8 riceType) external view returns (BuyItem[] memory){
+  function getSellerRequestListByType(address seller, uint8 riceType) external view returns (BuyItem[] memory){
       uint256 resultCount;
       for(uint i = 0; i < requestList[riceType].length; i ++){
-        if(requestList[riceType][i].seller == holder){
+        if(requestList[riceType][i].seller == seller){
           resultCount++;
         }
       }
       BuyItem [] memory requestPriceList = new BuyItem [](resultCount);
       uint256 j = 0;
-      for(uint i = 0; i < priceList[riceType].length; i ++){
-        if(requestList[riceType][i].seller == holder){
+      for(uint i = 0; i < requestList[riceType].length; i ++){
+        if(requestList[riceType][i].seller == seller){
            requestPriceList[j]=requestList[riceType][i];
+           j++;
+        }
+      }
+      return requestPriceList;
+  } 
+  
+  function getBuyerRequestListByType(address buyer, uint8 riceType) external view returns (BuyItem[] memory){
+      uint256 resultCount;
+      for(uint i = 0; i < requestList[riceType].length; i ++){
+        if(requestList[riceType][i].buyer == buyer){
+          resultCount++;
+        }
+      }
+      BuyItem [] memory requestPriceList = new BuyItem [](resultCount);
+      uint256 j = 0;
+      for(uint i = 0; i < requestList[riceType].length; i ++){
+        if(requestList[riceType][i].buyer == buyer){
+           requestPriceList[j]=requestList[riceType][i];
+           j++;
         }
       }
       return requestPriceList;
   } 
   function isAddressSeller(address userAdd) external view returns (bool){
-    if(sellerTypeBalance[userAdd].length > 0){
+    if(sellerTypeBalance[userAdd].length > 0 || unharvestBalance[userAdd].length > 0){
       return true;
     }
     return false;
@@ -304,7 +325,7 @@ contract MHT {
     for(uint i = 0 ; i < newItemList.length; i++){
       newPriceListAmount += (newItemList[i].amount * newItemList[i].size);
     }
-    require((listedAmount + newPriceListAmount) < holdingAmount, "Balance not enough");
+    require((listedAmount + newPriceListAmount) <= holdingAmount, "Balance not enough");
     // create item and set it to price list
     for(uint i = 0 ; i < newItemList.length; i++){
       priceList[riceType].push(newItemList[i]); 
@@ -350,8 +371,8 @@ contract MHT {
     for(uint i = 0 ; i < newItemList.length; i++){
       totalBuyAmount += (newItemList[i].amount * newItemList[i].size);
     }
-    require(totalBuyAmount < (priceItem.amount * priceItem.size), "Sell Item not enough");
-    require(totalBuyAmount < balance.balance, "Balance not enough");
+    require(totalBuyAmount <= (priceItem.amount * priceItem.size), "Sell Item not enough");
+    require(totalBuyAmount <= balance.balance, "Balance not enough");
     
     for(uint i = 0; i < newItemList.length; i ++){
       // reduce amount from price and balance
@@ -377,7 +398,8 @@ contract MHT {
       emit Transfer(msg.sender, newItemList[i].buyer, (newItemList[i].amount * newItemList[i].size));
     }
     if(priceItem.amount == 0){
-      delete priceList[riceType][priceItemIndex];
+      priceList[riceType][priceItemIndex] = priceList[riceType][priceList[riceType].length];
+      priceList[riceType].pop();
     }else{
       priceList[riceType][priceItemIndex] = priceItem;
     }

@@ -6,11 +6,11 @@ import PopUpDialogs from 'src/components/PopUpDialogs'
 import { Provider } from 'src/core/network/web3/provider'
 import { setObjectKeyValue } from 'src/core/utils'
 import { AppContext } from 'src/features/common/contexts/appContext'
-import { useFarmerHolding } from '../FarmerHoldingList/context'
+import { useFarmer } from '../../context'
 import { ISellItem } from './interface'
 
 const CreatePriceForm = () => {
-  const { isCreateFormOpen, selectedBalance, reset } = useFarmerHolding()
+  const { isCreateFormOpen, selectedBalance, reset } = useFarmer()
   const { account } = useWeb3React<Provider>()
   const { tradeContract } = useContext(AppContext)
   const initData = useCallback(() => {
@@ -23,7 +23,7 @@ const CreatePriceForm = () => {
       endDate: selectedBalance?.endDate ?? 0,
     }
   }, [account, selectedBalance?.endDate, selectedBalance?.startDate])
-  const [rowData, setRowData] = useState<ISellItem[]>([initData()])
+  const [rowData, setRowData] = useState<ISellItem[]>([])
   const onCloseForm = useCallback(() => {
     setRowData([initData()])
     reset()

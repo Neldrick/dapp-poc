@@ -21,3 +21,12 @@ export interface IPriceItem {
   startDate: number
   endDate: number
 }
+export interface IRequestItem {
+  buyer: string
+  seller: string
+  size: number
+  amount: number
+  price: number
+  startDate: number
+  endDate: number
+}

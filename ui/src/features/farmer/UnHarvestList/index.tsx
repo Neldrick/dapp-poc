@@ -11,20 +11,23 @@ import { RiceType } from 'src/features/common/models/enum'
 import { generalStyles } from '../constants'
 import { useFarmer } from '../context'
 import { IFramerHolding } from '../interface'
-import CreatePriceForm from './CreatePriceForm'
+import HarvestForm from './HarvestForm'
 
-const FarmerHolidingList = () => {
-  // 1. get data from block chain
+const UnHarvestList = () => {
   const styling = generalStyles()
   const { tradeContract } = useContext(AppContext)
   const { account } = useWeb3React<Provider>()
-  const [holdingList, setHoldingList] = useState<IFramerHolding[]>([])
-  const { isHoldingExpand, setIsHoldingExpand, setSelectedBalance, setIsCreateFormOpen } =
-    useFarmer()
+  const [unHarvestList, setUnHarvestList] = useState<IFramerHolding[]>([])
+  const {
+    isUnHaverstListExpand,
+    setIsUnHaverstListExpand,
+    setSelectedBalance,
+    setIsClaimFormOpen,
+  } = useFarmer()
   useEffect(() => {
     if (tradeContract) {
-      tradeContract.getSellerTypeBalance(account).then((result: any[]) => {
-        setHoldingList(
+      tradeContract.getUnharvestBalance(account).then((result: any[]) => {
+        setUnHarvestList(
           result.map((x: any) => {
             return {
               balance: parseInt(x.balance._hex ?? '0', 16),
@@ -39,26 +42,29 @@ const FarmerHolidingList = () => {
   }, [account, tradeContract])
   const handleActionClick = useCallback(
     (rowData: IFramerHolding) => {
+      setIsClaimFormOpen(true)
       setSelectedBalance(rowData)
-      setIsCreateFormOpen(true)
     },
-    [setIsCreateFormOpen, setSelectedBalance]
+    [setIsClaimFormOpen, setSelectedBalance]
   )
   return (
     <div css={styling.container}>
-      <h4 css={styling.tableTitle}> Holding</h4>
-      <Button css={styling.tableCollapse} onClick={() => setIsHoldingExpand(!isHoldingExpand)}>
-        {isHoldingExpand ? 'Collapse' : 'Expand'}
+      <h4 css={styling.tableTitle}> UnHarvest Balance</h4>
+      <Button
+        css={styling.tableCollapse}
+        onClick={() => setIsUnHaverstListExpand(!isUnHaverstListExpand)}
+      >
+        {isUnHaverstListExpand ? 'Collapse' : 'Expand'}
       </Button>
       <hr />
-      {isHoldingExpand && (
+      {isUnHaverstListExpand && (
         <Table
           width={800}
           height={250}
           headerHeight={20}
           rowHeight={40}
-          rowCount={holdingList.length}
-          rowGetter={({ index }) => holdingList[index]}
+          rowCount={unHarvestList.length}
+          rowGetter={({ index }) => unHarvestList[index]}
           style={{ padding: '5px' }}
           rowStyle={{ borderBottom: '1px solid black' }}
         >
@@ -87,14 +93,14 @@ const FarmerHolidingList = () => {
             dataKey="action"
             cellRenderer={({ rowData }) => (
               <Button variant="contained" onClick={() => handleActionClick(rowData)}>
-                Create Price
+                Harvest
               </Button>
             )}
           />
         </Table>
       )}
-      <CreatePriceForm />
+      <HarvestForm />
     </div>
   )
 }
-export default FarmerHolidingList
+export default UnHarvestList
